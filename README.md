@@ -31,3 +31,48 @@ Ultimately, the choice depends on the institution’s risk tolerance, regulatory
 - [Statistica Paper: Credit Scoring](https://www3.stat.sinica.edu.tw/statistica/oldpdf/A28n535.pdf)
 
 - [Alternative Credit Scoring (HKMA)](https://www.hkma.gov.hk/media/eng/doc/key-functions/financial-infrastructure/alternative_credit_scoring.pdf)
+
+
+# 📊 Task-2: Exploratory Data Analysis (EDA)
+This task performs an in-depth exploratory data analysis on the raw credit risk dataset to understand its structure, quality, and underlying patterns. EDA is a critical step that helps guide feature selection, engineering, and modeling decisions in the credit scoring pipeline.
+
+## 1. Install requirement
+
+- see requirements
+
+## 🗂️  2.Initial Data Overview
+Check the structure, size, and data samples
+
+## 🔢  3.Data Types and Summary Statistics
+
+## 📈 4. Distribution of Numerical Features
+
+## ➤ 5.Summary Statistics (Numerical)
+
+These statistics include:
+
+Mean, standard deviation
+
+Min, max values
+
+Quartiles (25%, 50%, 75%)
+
+# 🧩 6 Identify Numerical and Categorical Features
+
+
+# 🔍 7 Correlation Matrix (Numerical Features)
+
+# 🧩 8 Missing Values
+
+# 🚨 9 Outlier Detection
+
+# Summary of EDA Insights
+- The dataset includes both numerical and categorical features.
+
+- Certain columns may have skewed distributions or contain outliers.
+
+- Some features are highly correlated and may need transformation or selection.
+
+- Missing data and class imbalance (if any) will require treatment.
+
+- Categorical features exhibit varying levels of cardinality, affecting encoding strategies.
