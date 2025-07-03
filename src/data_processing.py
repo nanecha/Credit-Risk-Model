@@ -12,32 +12,46 @@ warnings.filterwarnings('ignore')
 
 class WOEWrapper:
     """
-    Wrapper for xverse.WOE to handle NumPy array inputs by converting to
-    DataFrame
+    Wrapper for xverse.WOE to handle NumPy array inputs by
+    converting to DataFrame
     """
-
-    def __init__(self, woe_transformer=WOE()):
-        self.woe_transformer = woe_transformer
-        self.feature_names = None
+    def __init__(self, woe_transformer=None, feature_names=None):
+        self.woe_transformer = woe_transformer or WOE(monotonic_binning=False)
+        self.feature_names = feature_names
 
     def fit(self, X, y=None):
-        # Convert NumPy array to DataFrame if necessary
+        # If X is numpy, convert to DataFrame using provided feature names
         if isinstance(X, np.ndarray):
+            if not self.feature_names:
+                raise ValueError(
+                    "Feature names must be provided for NumPy input."
+                )
             X = pd.DataFrame(X, columns=self.feature_names)
+        else:
+            self.feature_names = list(X.columns)  # Save feature names
+
         self.woe_transformer.fit(X, y)
-        self.feature_names = X.columns
         return self
 
     def transform(self, X):
-        # Convert NumPy array to DataFrame if necessary
         if isinstance(X, np.ndarray):
+            if not self.feature_names:
+                raise ValueError(
+                    "Feature names must be provided for NumPy input."
+                )
             X = pd.DataFrame(X, columns=self.feature_names)
         return self.woe_transformer.transform(X)
 
     def fit_transform(self, X, y=None):
-        # Convert NumPy array to DataFrame if necessary
         if isinstance(X, np.ndarray):
+            if not self.feature_names:
+                raise ValueError(
+                    "Feature names must be provided for NumPy input."
+                )
             X = pd.DataFrame(X, columns=self.feature_names)
+        else:
+            self.feature_names = list(X.columns)
+
         return self.woe_transformer.fit_transform(X, y)
 
     @property
@@ -80,7 +94,7 @@ class FeatureEngineeringPipeline:
 
     def calculate_woe_iv(self, df, categorical_columns, target_col):
         """Calculate WOE and IV for categorical variables"""
-        woe_transformer = WOE()
+        woe_transformer = WOE(monotonic_binning=False)
         woe_transformer.fit(df[categorical_columns], df[target_col])
 
         # Get WOE and IV values
@@ -152,7 +166,9 @@ class FeatureEngineeringPipeline:
             categorical_transformer = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='constant',
                                           fill_value='missing')),
-                ('woe', WOEWrapper())
+                ('woe',
+                 WOEWrapper(feature_names=list(self.categorical_columns))
+                 )
             ])
 
         # Combine preprocessing steps
@@ -168,8 +184,10 @@ class FeatureEngineeringPipeline:
         ])
 
         # Fit and transform the data
-        transformed_data = self.pipeline.fit_transform(df_processed)
-
+        transformed_data = self.pipeline.fit_transform(
+            df_processed.drop(columns=[target_col] if target_col else []),
+            df_processed[target_col] if target_col else None
+        )
         # Generate feature names
         feature_names = []
         for name, transformer, columns in \
