@@ -1,6 +1,10 @@
+
 import pytest
 import pandas as pd
 import numpy as np
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 from src.rfm_clustering import RFMClustering
 
 
@@ -74,11 +78,11 @@ def test_high_risk_assignment():
     # lowest frequency (1), lowest monetary
     assert rfm[rfm['CustomerId'] ==
                'C2']['is_high_risk'].iloc[0] == 1, "C2 should be high-risk"
-    assert 'is_high_risk' in df_with_rfm.columns,
-    "is_high_risk column missing in output DataFrame"
+    assert 'is_high_risk' in df_with_rfm.columns, "is_high_risk column missing in output DataFrame"
     assert df_with_rfm['is_high_risk'].isin(
         [0, 1]).all(), "is_high_risk should be binary"
 
 
 if __name__ == "__main__":
+
     pytest.main(["-v"])
