@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score
 from sklearn.metrics import recall_score, roc_auc_score
 import mlflow
 import mlflow.sklearn
+from imblearn.over_sampling import SMOTE
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -22,8 +23,7 @@ class ModelTrainer:
         self.models = models or {
             'RandomForest': RandomForestClassifier(random_state=random_state),
             'GradientBoosting': GradientBoostingClassifier(
-                random_state=random_state
-            )
+                random_state=random_state)
         }
         self.param_grids = param_grids or {
             'RandomForest': {
@@ -44,7 +44,7 @@ class ModelTrainer:
 
     def split_data(self, df, target_col, test_size=0.3):
         """
-        Split data into training and testing sets.
+        Split data into training and testing sets,
 
         Parameters:
         - df: Input DataFrame
@@ -54,14 +54,21 @@ class ModelTrainer:
         Returns:
         - X_train, X_test, y_train, y_test
         """
-        X = df.drop(columns=[target_col])
+        # Exclude RFM-related columns to prevent data leakage
+        exclude_cols = [target_col, 'Recency',
+                        'Frequency', 'Monetary', 'Cluster']
+        X = df.drop(columns=[col for col in exclude_cols if col in df.columns])
         y = df[target_col]
-        return train_test_split(
-            X, y,
-            test_size=test_size,
-            random_state=self.random_state,
-            stratify=y
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size,
+            random_state=self.random_state, stratify=y
         )
+
+        # Apply SMOTE to handle class imbalance
+        smote = SMOTE(random_state=self.random_state)
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+
+        return X_train, X_test, y_train, y_test
 
     def evaluate_model(self, y_true, y_pred, y_pred_proba):
         """
@@ -128,8 +135,14 @@ class ModelTrainer:
                 for metric_name, metric_value in metrics.items():
                     mlflow.log_metric(metric_name, metric_value)
 
-                # Log model
-                mlflow.sklearn.log_model(best_model, model_name)
+                # Log model with input example
+                input_example = X_train.head(1)
+                mlflow.sklearn.log_model(
+                    sk_model=best_model,
+                    artifact_path=model_name,
+                    registered_model_name=model_name,
+                    input_example=input_example
+                )
 
                 # Update best model
                 if metrics['f1'] > self.best_score:
