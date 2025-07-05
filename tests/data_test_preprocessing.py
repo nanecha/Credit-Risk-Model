@@ -1,11 +1,11 @@
 
+from src.rfm_clustering import RFMClustering
 import pytest
 import pandas as pd
 import numpy as np
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-from src.rfm_clustering import RFMClustering
 
 
 def test_rfm_calculation():

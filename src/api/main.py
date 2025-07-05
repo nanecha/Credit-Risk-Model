@@ -4,9 +4,8 @@ import mlflow.sklearn
 import pandas as pd
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 from dotenv import load_dotenv
-
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 from src.api.pydantic_models import PredictionRequest, PredictionResponse
 
 # Initialize FastAPI app
