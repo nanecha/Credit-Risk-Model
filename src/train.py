@@ -3,11 +3,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, f1_score, precision_score
 from sklearn.metrics import recall_score, roc_auc_score
-import mlflow
 import mlflow.sklearn
 from imblearn.over_sampling import SMOTE
-import warnings
-warnings.filterwarnings('ignore')
 
 
 class ModelTrainer:
@@ -27,14 +24,17 @@ class ModelTrainer:
         }
         self.param_grids = param_grids or {
             'RandomForest': {
-                'n_estimators': [100, 200],
-                'max_depth': [5, 10],
-                'min_samples_split': [2, 5]
+                'n_estimators': [100, 200, 300],
+                'max_depth': [5, 10, 15],
+                'min_samples_split': [2, 5, 10],
+                'min_samples_leaf': [1, 2]
             },
             'GradientBoosting': {
-                'n_estimators': [100, 200],
-                'learning_rate': [0.01, 0.1],
-                'max_depth': [3, 5]
+                'n_estimators': [100, 200, 300],
+                'learning_rate': [0.01, 0.1, 0.2],
+                'max_depth': [3, 5, 7],
+                'min_samples_split': [2, 5, 10],
+                'subsample': [0.8, 1.0]
             }
         }
         self.random_state = random_state
@@ -65,9 +65,9 @@ class ModelTrainer:
         )
 
         # Apply SMOTE to handle class imbalance
-        smote = SMOTE(random_state=self.random_state)
+        smote = SMOTE(random_state=self.random_state,
+                      sampling_strategy='auto', k_neighbors=3)
         X_train, y_train = smote.fit_resample(X_train, y_train)
-
         return X_train, X_test, y_train, y_test
 
     def evaluate_model(self, y_true, y_pred, y_pred_proba):
@@ -139,9 +139,9 @@ class ModelTrainer:
                 input_example = X_train.head(1)
                 mlflow.sklearn.log_model(
                     sk_model=best_model,
-                    artifact_path=model_name,
+                    name=model_name,
                     registered_model_name=model_name,
-                    input_example=input_example
+                    input_example=input_example,
                 )
 
                 # Update best model
